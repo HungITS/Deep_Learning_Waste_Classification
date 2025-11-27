@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhận diện rác thải</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; color: white; margin-bottom: 30px; }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .upload-area { background: white; border-radius: 15px; padding: 40px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); margin-bottom: 20px; }
+        .upload-box { border: 3px dashed #ddd; border-radius: 10px; padding: 40px; transition: all 0.3s; cursor: pointer; }
+        .upload-box:hover { border-color: #667eea; background: #f8f9ff; }
+        .upload-box.dragover { border-color: #667eea; background: #f0f4ff; }
+        #fileInput { display: none; }
+        .upload-btn { background: #667eea; color: white; padding: 12px 30px; border: none; border-radius: 25px; font-size: 16px; cursor: pointer; margin-top: 20px; }
+        .upload-btn:hover { background: #5a6fd8; }
+        .preview { margin: 20px 0; }
+        .preview img { max-width: 300px; max-height: 300px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .result { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; }
+        .result h3 { color: #333; margin-bottom: 20px; }
+        .prediction { background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 10px 0; }
+        .main-result { background: #e8f5e8; border-left: 5px solid #28a745; }
+        .confidence { font-weight: bold; color: #28a745; }
+        .top3 { margin-top: 20px; }
+        .top3-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
+        .loading { display: none; color: #667eea; font-size: 18px; margin: 20px 0; }
+        .error { color: #dc3545; background: #f8d7da; padding: 15px; border-radius: 5px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗑️ Nhận diện rác thải</h1>
+            <p>Upload ảnh để phân loại rác tự động</p>
+        </div>
+
+        <div class="upload-area">
+            <div class="upload-box" onclick="document.getElementById('fileInput').click()">
+                <div id="uploadText">
+                    <h3>📁 Chọn hoặc kéo thả ảnh vào đây</h3>
+                    <p>Hỗ trợ: JPG, PNG, GIF</p>
+                </div>
+                <input type="file" id="fileInput" accept="image/*">
+                <button class="upload-btn" type="button">Chọn ảnh</button>
+            </div>
+            
+            <div class="preview" id="preview"></div>
+            <div class="loading" id="loading">🔄 Đang phân tích...</div>
+        </div>
+
+        <div class="result" id="result">
+            <h3>📊 Kết quả phân tích</h3>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const uploadBox = document.querySelector('.upload-box');
+        const preview = document.getElementById('preview');
+        const loading = document.getElementById('loading');
+        const result = document.getElementById('result');
+        const resultContent = document.getElementById('resultContent');
+
+        // Drag & Drop
+        uploadBox.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadBox.classList.add('dragover');
+        });
+
+        uploadBox.addEventListener('dragleave', () => {
+            uploadBox.classList.remove('dragover');
+        });
+
+        uploadBox.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadBox.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('Vui lòng chọn file ảnh!');
+                return;
+            }
+
+            // Hiển thị preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+            };
+            reader.readAsDataURL(file);
+
+            // Upload và predict
+            uploadAndPredict(file);
+        }
+
+        function uploadAndPredict(file) {
+            loading.style.display = 'block';
+            result.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = 'none';
+                
+                if (data.success) {
+                    showResult(data);
+                } else {
+                    showError(data.error);
+                }
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                showError('Lỗi kết nối: ' + error.message);
+            });
+        }
+
+        function showResult(data) {
+            const classEmojis = {
+                'cardboard': '📦',
+                'glass': '🍶', 
+                'metal': '🥫',
+                'paper': '📄',
+                'plastic': '🥤',
+                'trash': '🗑️'
+            };
+
+            let html = `
+                <div class="prediction main-result">
+                    <h4>${classEmojis[data.predicted_class]} ${data.predicted_class.toUpperCase()}</h4>
+                    <p class="confidence">Độ tin cậy: ${data.confidence}</p>
+                </div>
+                
+                <div class="top3">
+                    <h4>Top 3 dự đoán:</h4>
+            `;
+
+            data.top3_predictions.forEach((pred, index) => {
+                html += `
+                    <div class="top3-item">
+                        <span>${classEmojis[pred.class]} ${pred.class}</span>
+                        <span>${(pred.probability * 100).toFixed(1)}%</span>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            resultContent.innerHTML = html;
+            result.style.display = 'block';
+        }
+
+        function showError(message) {
+            resultContent.innerHTML = `<div class="error">❌ ${message}</div>`;
+            result.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
