@@ -16,7 +16,7 @@ A Deep Learning project using ResNet50 to classify waste into 6 categories: card
 Project/
 ├── main.py             # Main entry point with interactive menu
 ├── requirements.txt    # Dependencies
-├── archive             # Raw dataset
+├── archive/            # Raw dataset
 ├── data/               # Dataset
 │   ├── train/          # Training data
 │   └── test/           # Test data
