@@ -1,94 +1,120 @@
-# 🗑️ Hệ thống nhận diện rác thải
+# Deep Learning Waste Classification
 
-Dự án Deep Learning sử dụng ResNet50 để phân loại rác thải thành 6 loại: cardboard, glass, metal, paper, plastic, trash.
+A Deep Learning project using ResNet50 to classify waste into 6 categories: cardboard, glass, metal, paper, plastic, trash.
 
-## 📋 Tính năng
+## Features
 
-- ✅ **Training tự động**: Tự động training model nếu chưa có
-- 🌐 **Web Demo**: Upload ảnh qua giao diện web đẹp
-- 📷 **Camera Demo**: Nhận diện real-time từ webcam
-- 🚀 **Portable**: Dễ dàng chuyển sang máy khác
+- **Interactive Menu**: Easy-to-use command-line interface
+- **Model Training**: Train ResNet50 model from scratch
+- **Web Demo**: Upload images via beautiful web interface
+- **Camera Demo**: Real-time waste detection from webcam
+- **Automatic Setup**: Creates necessary folders automatically
 
-## 🏗️ Cấu trúc project
+## Project Structure
 
 ```
 Project/
-├── main.py              # File chính để chạy hệ thống
-├── requirements.txt     # Dependencies
+├── main.py             # Main entry point with interactive menu
+├── requirements.txt    # Dependencies
+├── archive             # Raw dataset
 ├── data/               # Dataset
-│   ├── train/          # Dữ liệu training
-│   └── test/           # Dữ liệu test
+│   ├── train/          # Training data
+│   └── test/           # Test data
 ├── src/                # Source code
-│   ├── model.py        # ResNet50 model
+│   ├── model.py        # ResNet50 model implementation
 │   ├── train.py        # Training script
-│   └── inference.py    # Inference utilities
+│   └── prepare_data.py # Data preparation utilities
 ├── demo/               # Demo applications
 │   ├── web.py          # Flask web application
-│   └── camera.py       # Camera demo real-time
+│   └── camera.py       # Camera demo
 ├── templates/          # HTML templates
 │   └── index.html      # Web interface
-├── model/              # Trained models (tự động tạo)
-└── images/             # Screenshots & plots (tự động tạo)
+├── model/              # Trained models (auto-created)
+└── images/             # Screenshots & training plots (auto-created)
 ```
 
-## 🚀 Cài đặt và chạy
+## Installation and Usage
 
-### 1. Cài đặt dependencies
+### 1. Create environment and activate
+```bash
+python -m venv venv
+source ./venv/bin/activate
+```
+
+### 2. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Chạy hệ thống
-
-**Web Demo (mặc định):**
+### 3.Run the System
 ```bash
-python main.py --mode web
+python main.py
 ```
 
-**Camera Demo:**
-```bash
-python main.py --mode camera
-```
+### 4. Interactive Menu Options
 
-**Bắt buộc training lại:**
-```bash
-python main.py --force-train --mode web
-```
+**Main Menu:**
+1. **Training model** - Train a new ResNet50 model
+2. **Demo web** - Launch web interface for image upload
+3. **Demo camera** - Start real-time camera detection
+4. **Quit** - Exit the application
 
-### 3. Sử dụng
+**After Training:**
+- Demo web
+- Demo camera  
+- Back to main menu
 
-**Web Demo:**
-- Mở trình duyệt: `http://127.0.0.1:5000`
-- Upload hoặc kéo thả ảnh vào giao diện
-- Xem kết quả phân loại với độ tin cậy
+**No Model Found:**
+- Train model
+- Back to main menu
 
-**Camera Demo:**
-- Nhấn `s` để chụp màn hình
-- Nhấn `q` để thoát
+## Usage Instructions
 
-## 🎯 Quy trình hoạt động
+### Web Demo
+- Access: `http://127.0.0.1:5000`
+- Upload or drag & drop images
+- View classification results with confidence scores
+- See top 3 predictions
 
-1. **Kiểm tra model**: Tự động kiểm tra folder `model/`
-2. **Training**: Nếu không có model → tự động training
-3. **Lưu model**: Model được lưu với timestamp
-4. **Demo**: Khởi động web hoặc camera demo
+### Camera Demo
+- Real-time waste detection
+- Press 's' to save screenshot
+- Press 'q' to quit
+- Screenshots saved to `images/` folder
 
-## 📊 Dataset
+## Dataset Classes
 
-6 loại rác được hỗ trợ:
-- 📦 **Cardboard** (Bìa carton)
-- 🍶 **Glass** (Thủy tinh) 
-- 🥫 **Metal** (Kim loại)
-- 📄 **Paper** (Giấy)
-- 🥤 **Plastic** (Nhựa)
-- 🗑️ **Trash** (Rác thải khác)
+6 waste categories supported:
+- **Cardboard** - Cardboard materials
+- **Glass** - Glass containers and bottles
+- **Metal** - Metal cans and containers
+- **Paper** - Paper materials
+- **Plastic** - Plastic containers and bottles
+- **Trash** - General waste
 
-## 🔧 Cấu hình
+## Model Configuration
 
-**Training parameters** (trong `src/train.py`):
+**Training Parameters:**
+- Architecture: ResNet50
+- Classes: 6
 - Batch size: 32
 - Learning rate: 3e-4
-- Epochs: 100 (với early stopping)
+- Max epochs: 100
+- Early stopping: 15 patience
 - Image size: 224x224
+- Optimizer: AdamW with weight decay
 
-**Model**: ResNet50 với 6 classes output
+**Features:**
+- Data augmentation
+- Class weight balancing
+- Learning rate scheduling
+- Gradient clipping
+- Training progress visualization
+
+## System Requirements
+
+- Python 3.7+
+- PyTorch
+- OpenCV (for camera demo)
+- Flask (for web demo)
+- CUDA (optional, for GPU acceleration)
