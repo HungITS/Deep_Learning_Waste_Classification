@@ -25,8 +25,7 @@ Project/
 ├── src/                   # Source code
 │   ├── model.py           # ResNet50 model implementation
 │   ├── train.py           # Training script
-│   ├── prepare_data.py    # Data preparation utilities (legacy)
-│   └── prepare_new_data.py # New data preparation for multi-class
+│   ├── prepare_data.py    # Data preparation
 ├── demo/                  # Demo applications
 │   └── web.py             # Unified Flask web application
 ├── templates/             # HTML templates
