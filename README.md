@@ -6,8 +6,8 @@ A Deep Learning project using ResNet50 to classify waste into 6 categories: card
 
 - **Interactive Menu**: Easy-to-use command-line interface
 - **Model Training**: Train ResNet50 model from scratch
-- **Web Demo**: Upload images via beautiful web interface
-- **Camera Demo**: Real-time waste detection from webcam
+- **Unified Web Demo**: Upload images and live camera detection in one interface
+- **Real-time Detection**: Live waste classification from webcam
 - **Automatic Setup**: Creates necessary folders automatically
 
 ## Project Structure
@@ -25,10 +25,9 @@ Project/
 │   ├── train.py        # Training script
 │   └── prepare_data.py # Data preparation utilities
 ├── demo/               # Demo applications
-│   ├── web.py          # Flask web application
-│   └── camera.py       # Camera demo
+│   └── web.py          # Unified Flask web application
 ├── templates/          # HTML templates
-│   └── index.html      # Web interface
+│   └── index.html      # Web interface with tabs
 ├── model/              # Trained models (auto-created)
 └── images/             # Screenshots & training plots (auto-created)
 ```
@@ -46,7 +45,7 @@ source ./venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3.Run the System
+### 3. Run the System
 ```bash
 python main.py
 ```
@@ -55,32 +54,23 @@ python main.py
 
 **Main Menu:**
 1. **Training model** - Train a new ResNet50 model
-2. **Demo web** - Launch web interface for image upload
-3. **Demo camera** - Start real-time camera detection
-4. **Quit** - Exit the application
-
-**After Training:**
-- Demo web
-- Demo camera  
-- Back to main menu
-
-**No Model Found:**
-- Train model
-- Back to main menu
+2. **Demo** - Launch unified web interface
+3. **Quit** - Exit the application
 
 ## Usage Instructions
 
-### Web Demo
-- Access: `http://127.0.0.1:5000`
+### Unified Web Demo
+Access: `http://127.0.0.1:5000`
+
+**Upload Tab:**
 - Upload or drag & drop images
 - View classification results with confidence scores
-- See top 3 predictions
+- See top 3 predictions with probabilities
 
-### Camera Demo
-- Real-time waste detection
-- Press 's' to save screenshot
-- Press 'q' to quit
-- Screenshots saved to `images/` folder
+**Live Camera Tab:**
+- Click "Start Camera" for real-time detection
+- Live waste classification from webcam
+- Click "Stop Camera" to end session
 
 ## Dataset Classes
 
@@ -115,6 +105,6 @@ python main.py
 
 - Python 3.7+
 - PyTorch
-- OpenCV (for camera demo)
-- Flask (for web demo)
+- OpenCV (for camera functionality)
+- Flask (for web interface)
 - CUDA (optional, for GPU acceleration)
