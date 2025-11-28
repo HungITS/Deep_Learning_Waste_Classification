@@ -9,12 +9,12 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 
 BATCH_SIZE = 32
-LEARNING_RATE = 3e-4
-EPOCHS = 100
-WARMUP_EPOCHS = 5
-NUM_CLASSES = 6
+LEARNING_RATE = 5e-4
+EPOCHS = 50
+WARMUP_EPOCHS = 3
+NUM_CLASSES = 12
 DATA_TRAIN = "data/train"
-DATA_TEST  = "data/test"
+DATA_TEST = "data/test"
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.manual_seed(42)
@@ -38,15 +38,16 @@ test_transform = transforms.Compose([
 ])
 
 train_dataset = datasets.ImageFolder(root=DATA_TRAIN, transform=train_transform)
-test_dataset  = datasets.ImageFolder(root=DATA_TEST,  transform=test_transform)
+test_dataset = datasets.ImageFolder(root=DATA_TEST, transform=test_transform)
 
+# Class balancing
 labels = [s[1] for s in train_dataset.samples]
 class_count = Counter(labels)
 weights = torch.tensor([1.0 / class_count[i] for i in range(NUM_CLASSES)], dtype=torch.float).to(device)
 criterion = nn.CrossEntropyLoss(weight=weights)
 
-train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=2, pin_memory=True)
-test_loader  = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=2, pin_memory=True)
+train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=4, pin_memory=True)
+test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE*2, shuffle=False, num_workers=4, pin_memory=True)  # Batch lớn hơn cho test
 
 model = ResNet50(num_classes=NUM_CLASSES).to(device)
 optimizer = optim.AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=1e-4)
@@ -64,12 +65,13 @@ warmup_scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=warmup
 
 best_acc = 0.0
 patience_counter = 0
-max_patience = 15
+max_patience = 8  # Giảm patience
 
-# Tracking loss và accuracy
 train_losses = []
 test_accuracies = []
-Path("images").mkdir(exist_ok=True) 
+Path("images").mkdir(exist_ok=True)
+
+print(f"\nStarting training with {NUM_CLASSES} classes...")
 
 for epoch in range(EPOCHS):
     model.train()
@@ -90,7 +92,6 @@ for epoch in range(EPOCHS):
     if epoch < WARMUP_EPOCHS:
         warmup_scheduler.step()
 
-    # === Evaluation ===
     model.eval()
     correct, total = 0, 0
     with torch.no_grad():
@@ -101,24 +102,23 @@ for epoch in range(EPOCHS):
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
-    acc = 100 * correct / total
+    test_acc = 100 * correct / total
     avg_loss = running_loss / len(train_loader)
     current_lr = optimizer.param_groups[0]['lr']
     
-    # Lưu loss và accuracy
     train_losses.append(avg_loss)
-    test_accuracies.append(acc)
+    test_accuracies.append(test_acc)
     
-    print(f"Epoch [{epoch+1}/{EPOCHS}] | Loss: {avg_loss:.4f} | Test Acc: {acc:.2f}% | LR: {current_lr:.6f}")
+    print(f"Epoch [{epoch+1}/{EPOCHS}] | Loss: {avg_loss:.4f} | Test Acc: {test_acc:.2f}% | LR: {current_lr:.6f}")
 
     if epoch >= WARMUP_EPOCHS:
-        scheduler.step(acc)
+        scheduler.step(test_acc)
 
-    if acc > best_acc:
-        best_acc = acc
+    if test_acc > best_acc:
+        best_acc = test_acc
         patience_counter = 0
         torch.save(model.state_dict(), "best_resnet50.pth")
-        print(f"New best model saved! Accuracy: {acc:.2f}%")
+        print(f"New best model saved! Accuracy: {test_acc:.2f}%")
     else:
         patience_counter += 1
         
@@ -126,9 +126,8 @@ for epoch in range(EPOCHS):
         print(f"\nEarly stopping triggered after {epoch+1} epochs")
         break
 
-print(f"\nBest Accuracy: {best_acc:.2f}%")
+print(f"\nBest Test Accuracy: {best_acc:.2f}%")
 
-# Vẽ biểu đồ loss và accuracy
 plt.figure(figsize=(12, 4))
 
 plt.subplot(1, 2, 1)
@@ -149,7 +148,5 @@ plt.grid(True)
 
 plt.tight_layout()
 plt.savefig('images/training_progress.png', dpi=300, bbox_inches='tight')
-print("\n📈 Biểu đồ training đã lưu vào: images/training_progress.png")
+print("\nTraining plot saved to: images/training_progress.png")
 plt.close()
-
-

@@ -28,7 +28,7 @@ class BottleneckBlock(nn.Module):
         return F.relu(out)
 
 class ResNet50(nn.Module):
-    def __init__(self, num_classes=6):
+    def __init__(self, num_classes=12):
         super().__init__()
         self.in_channels = 64
         self.conv1 = nn.Conv2d(3, 64, 7, 2, 3, bias=False)

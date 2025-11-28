@@ -16,12 +16,27 @@ from src.model import ResNet50
 app = Flask(__name__, template_folder='../templates')
 
 
-NUM_CLASSES = 6
-CLASS_NAMES = ['cardboard', 'glass', 'metal', 'paper', 'plastic', 'trash']
+NUM_CLASSES = 12
+# Sẽ tự động detect class names từ model
+CLASS_NAMES = []  # Sẽ được cập nhật sau
 
 
 model_path = os.environ.get('MODEL_PATH', 'model/latest.pth')
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# Tự động detect class names từ dataset
+import os
+data_train_path = "../data/train"
+if os.path.exists(data_train_path):
+    CLASS_NAMES = sorted([d for d in os.listdir(data_train_path) 
+                         if os.path.isdir(os.path.join(data_train_path, d))])
+    NUM_CLASSES = len(CLASS_NAMES)
+else:
+    # Fallback nếu không tìm thấy
+    CLASS_NAMES = ['cardboard', 'glass', 'metal', 'paper', 'plastic', 'trash']
+    NUM_CLASSES = 6
+
+print(f"Detected {NUM_CLASSES} classes: {CLASS_NAMES}")
 
 model = ResNet50(num_classes=NUM_CLASSES)
 model.load_state_dict(torch.load(model_path, map_location=device))

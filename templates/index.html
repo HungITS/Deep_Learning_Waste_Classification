@@ -203,12 +203,22 @@
                 'metal': '🥫',
                 'paper': '📄',
                 'plastic': '🥤',
-                'trash': '🗑️'
+                'trash': '🗑️',
+                'battery': '🔋',
+                'biological': '🌿',
+                'brown-glass': '🍺',
+                'clothes': '👕',
+                'green-glass': '🍾',
+                'shoes': '👟',
+                'white-glass': '⚪',
+                // Fallback cho các class khác
+                'default': '🗑️'
             };
 
+            const mainEmoji = classEmojis[data.predicted_class] || classEmojis['default'];
             let html = `
                 <div class="prediction main-result">
-                    <h4>${classEmojis[data.predicted_class]} ${data.predicted_class.toUpperCase()}</h4>
+                    <h4>${mainEmoji} ${data.predicted_class.toUpperCase()}</h4>
                     <p class="confidence">Confidence: ${data.confidence}</p>
                 </div>
                 
@@ -217,9 +227,10 @@
             `;
 
             data.top3_predictions.forEach((pred, index) => {
+                const emoji = classEmojis[pred.class] || classEmojis['default'];
                 html += `
                     <div class="top3-item">
-                        <span>${classEmojis[pred.class]} ${pred.class}</span>
+                        <span>${emoji} ${pred.class}</span>
                         <span>${(pred.probability * 100).toFixed(1)}%</span>
                     </div>
                 `;
